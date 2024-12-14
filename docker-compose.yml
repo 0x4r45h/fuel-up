@@ -1,0 +1,47 @@
+services:
+  node:
+    build:
+      dockerfile: docker/node/Dockerfile
+      context: .
+    restart: unless-stopped
+    profiles:
+      - node
+    networks:
+      fuel-up:
+    env_file:
+      - .env
+    logging:
+      options:
+        max-size: "12m"
+        max-file: "5"
+#    ulimits:
+#      nofile:
+#        soft: 32768
+#        hard: 65536
+    command: |
+        run
+        --enable-relayer
+        --service-name ${MONIKER}
+        --keypair ${P2P_PRIVATE_KEY}
+        --relayer ${ETHEREUM_RPC_ENDPOINT}
+        --ip=0.0.0.0 --port 4000 --peering-port ${NODE_P2P_PORT}
+        --db-path /home/pilot/.fuel-db
+        --snapshot /home/pilot/chain-configuration/${NETWORK_TYPE:-ignition}
+        --utxo-validation --poa-instant false --enable-p2p
+        --bootstrap-nodes ${BOOTSTRAP_NODES:-/dnsaddr/mainnet.fuel.network}
+        --sync-header-batch-size 100
+        --relayer-v2-listening-contracts=0xAEB0c00D0125A8a788956ade4f4F12Ead9f65DDf
+        --relayer-da-deploy-height=20620434
+        --relayer-log-page-size=100
+        --sync-block-stream-buffer-size 30
+    ports:
+      - "${NODE_P2P_PORT}:${NODE_P2P_PORT}" # p2p
+      - "${NODE_RPC_IP:-127.0.0.1}:${NODE_RPC_PORT}:4000"
+    volumes:
+      - type: volume
+        source: node
+        target: /home/pilot/.fuel-db
+volumes:
+  node:
+networks:
+  fuel-up:
