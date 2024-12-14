@@ -16,5 +16,5 @@ save keys somewhere safe
 then exit and run the node
 
 ```bash
-docker compose up -d
+docker compose --profile node up -d
 ```
